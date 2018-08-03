@@ -113,14 +113,44 @@ TEST_CASE("Vector Initialization", "[Vector]"){
 
 TEST_CASE("Vector Operations", "[Vector]"){
     SECTION("Vector and Matrix multiplication"){
-        Vypoint<float> lh_vypoint({1.0f,2.0f,3.0f,4.0f}); lh_vypoint.print();
+        Vypoint<float> lh_vypoint({1.0f,2.0f,3.0f,4.0f});
         Vytrix<float> rh_vytrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
-        rh_vytrix.print();
         Vypoint<float> result_vypoint = lh_vypoint*rh_vytrix;
-        result_vypoint.print();
         REQUIRE(result_vypoint[0] == 80.0f);
         REQUIRE(result_vypoint[1] == 70.0f);
         REQUIRE(result_vypoint[2] == 60.0f);
         REQUIRE(result_vypoint[3] == 50.0f);
     }
+    SECTION("Vector normalization"){
+        Vypoint<float> init_vector({1.0f, 1.0f, 1.0f, 0.0f});
+        init_vector.normalize_vector();
+        REQUIRE(init_vector[0] == Approx(.57735f));
+        REQUIRE(init_vector[1] == Approx(.57735f));
+        REQUIRE(init_vector[2] == Approx(.57735f));
+        Vypoint<float> init_vector_zero({0.0f,0.0f,0.0f,0.0f});
+        init_vector_zero.normalize_vector();
+        REQUIRE(init_vector_zero[0] == 0.0f);
+        REQUIRE(init_vector_zero[1] == 0.0f);
+        REQUIRE(init_vector_zero[2] == 0.0f);
+        Vypoint<float> init_vector_random({3.0f, 2.0f, -1.0f, 1.0f});
+        init_vector_random.normalize_vector();
+        REQUIRE(init_vector_random[0] == Approx(.801784));
+        REQUIRE(init_vector_random[1] == Approx(.534522));
+        REQUIRE(init_vector_random[2] == Approx(-.267261));
+    }
+    SECTION("Vector Dot Product"){
+        Vypoint<float> vector_1_1({3000.0f, 10.0f, 125.35f, 0.0f});
+        Vypoint<float> vector_1_2({0.0f, 0.0f, 0.0f, 0.0f});
+        float dot_prod_1_1 = vector_1_1.dot_product(vector_1_2);
+        REQUIRE(dot_prod_1_1 == 0.0f);
+        Vypoint<float> vector_1_3({1.0f, 1.0f, 1.0f, 0.0f});
+        Vypoint<float> vector_1_4({1.0f, 1.0f, 1.0f, 0.0f});
+        float dot_prod_1_2 = vector_1_3.dot_product(vector_1_4);
+        REQUIRE(dot_prod_1_2 == 3.0f);
+        Vypoint<float> vector_1({10.0f, 20.0f, 30.0f, 1.0f});
+        Vypoint<float> vector_2({20.0f, 45.0f, 75.0f, 1.0f});
+        float dot_prod_1 = vector_1.dot_product(vector_2);
+        REQUIRE(dot_prod_1 == 3350.0f);
+    }
 }
+

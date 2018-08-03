@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 #include <iostream>
 
 template <typename type>
@@ -46,8 +47,8 @@ class Vytrix{
 
 template <typename type>
 class Vypoint{
-    type vec[4] {};
     public:
+    type vec[4] {};
     Vypoint(){};
     Vypoint(const type (&input)[4]){
         vec[0] = input[0];
@@ -56,15 +57,25 @@ class Vypoint{
         vec[3] = input[3];
     }
     Vypoint(const type x){vec[0] = x; vec[1] = x; vec[2] = x; vec[3] = x;}
-    type operator [] (uint32_t i) {return vec[i];}
+    type operator [] (const uint32_t i) {return vec[i];}
     Vypoint operator * (Vytrix<type> rh_matrix){
         Vypoint<type> v_point;
         for(int i = 0; i < 4; ++i){
             for(int j = 0; j < 4; ++j){
-                v_point[i] = vec[i]*rh_matrix[j][i];
+                v_point.vec[i] += vec[j]*rh_matrix[j][i];
             }
         }
         return v_point;
+    }
+    type dot_product(Vypoint<type>& v){
+        return vec[0]*v[0] + vec[1]*v[1] + vec[2]*v[2];
+    }
+    void normalize_vector(){
+        type length = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+        if(length > 0){
+            type inv_length = 1/sqrt(length);
+            vec[0] *= inv_length; vec[1] *= inv_length; vec[2] *= inv_length;
+        }
     }
     void print(){
         std::cout<<vec<<std::endl;
