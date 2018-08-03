@@ -35,6 +35,21 @@ class Vytrix{
         }
         return product_vytrix;
     }
+    Vytrix operator * (const Vytrix rh_matrix) const {
+        Vytrix product_vytrix;
+        for(int i = 0; i < 4; ++i){
+            for(int j = 0; j < 4; ++j){
+                 product_vytrix[i][j] = matrix[i][0]*rh_matrix[0][j] +
+                                        matrix[i][1]*rh_matrix[1][j] +
+                                        matrix[i][2]*rh_matrix[2][j] +
+                                        matrix[i][3]*rh_matrix[3][j];
+            }
+        }
+        return product_vytrix;
+    }
+    static type deg_to_rad(type deg){
+        return (deg*M_PI)/180.0f;
+    }
     void print(){
         std::cout<<&matrix<<std::endl;
         std::cout<<"[ " << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3]<<"]"<<std::endl;
@@ -58,7 +73,8 @@ class Vypoint{
     }
     Vypoint(const type x){vec[0] = x; vec[1] = x; vec[2] = x; vec[3] = x;}
     type operator [] (const uint32_t i) {return vec[i];}
-    Vypoint operator * (Vytrix<type> rh_matrix){
+    const type operator [] (const uint32_t i) const {return vec[i];}
+    Vypoint<type> operator * (Vytrix<type>& rh_matrix){
         Vypoint<type> v_point;
         for(int i = 0; i < 4; ++i){
             for(int j = 0; j < 4; ++j){
@@ -67,8 +83,33 @@ class Vypoint{
         }
         return v_point;
     }
+    /*
+        Assumes v[3] = w to be 1 to save multiplication operation
+    */
+    void multiplyBy4x4(Vytrix<type>& lh_matrix){
+        vec[0] = vec[0]*lh_matrix[0][0] + vec[0]*lh_matrix[1][0] + vec[0]*lh_matrix[2][0] + lh_matrix[3][0];
+        vec[1] = vec[1]*lh_matrix[0][1] + vec[1]*lh_matrix[1][1] + vec[1]*lh_matrix[2][1] + lh_matrix[3][1];
+        vec[2] = vec[2]*lh_matrix[0][2] + vec[2]*lh_matrix[1][2] + vec[2]*lh_matrix[2][2] + lh_matrix[3][2];
+        vec[3] = vec[3]*lh_matrix[0][3] + vec[3]*lh_matrix[1][3] + vec[3]*lh_matrix[2][3] + lh_matrix[3][3];
+    }
     type dot_product(Vypoint<type>& v){
         return vec[0]*v[0] + vec[1]*v[1] + vec[2]*v[2];
+    }
+    Vypoint<type> x_product(Vypoint<type>& v){
+        Vypoint<type> resultant_vypoint({vec[1]*v[2] - vec[2]*v[1], 
+                                         vec[2]*v[0] - vec[0]*v[2],
+                                         vec[0]*v[1] - vec[1]*v[0],
+                                         1.0f});
+        return resultant_vypoint; 
+    }
+    void add_vector(const Vypoint<type>& v){
+        vec[0] += v[0]; vec[1] += v[1]; vec[2] += v[2];
+    }
+    void subtract_vector(const Vypoint<type>& v){
+        vec[0] -= v[0]; vec[1] -= v[1]; vec[2] -= v[2];
+    }
+    void multiply_scalar(const type& r){
+        vec[0] *= r; vec[1] *= r; vec[2] *= r;
     }
     void normalize_vector(){
         type length = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];

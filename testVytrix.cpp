@@ -152,5 +152,34 @@ TEST_CASE("Vector Operations", "[Vector]"){
         float dot_prod_1 = vector_1.dot_product(vector_2);
         REQUIRE(dot_prod_1 == 3350.0f);
     }
+    SECTION("Vector Cross Product"){
+        Vypoint<float> vector_1({1.0f,2.0f,3.0f,1.0f});
+        Vypoint<float> vector_2({1.0f,5.0f,7.0f,1.0f});
+        Vypoint<float> cross_product = vector_1.x_product(vector_2);
+        REQUIRE(cross_product[0] == -1.0f);
+        REQUIRE(cross_product[1] == -4.0f);
+        REQUIRE(cross_product[2] == 3.0f);
+        REQUIRE(cross_product[3] == 1.0f);
+    }
+    SECTION("Vector arithmetic operations"){
+        Vypoint<float> vector_1({1.0f,1.0f,1.0f, 1.0f});
+        Vypoint<float> vector_2({10.0f,11.0f,12.0f,1.0f});
+        vector_1.add_vector(vector_2);
+        REQUIRE(vector_1[0] == 11.0f);
+        REQUIRE(vector_1[1] == 12.0f);
+        REQUIRE(vector_1[2] == 13.0f);
+        REQUIRE(vector_1[3] == 1.0f);
+        Vypoint<float> vector_3({5.0f,6.0f,7.0f,1.0f});
+        vector_1.subtract_vector(vector_3);
+        REQUIRE(vector_1[0] == 6.0f);
+        REQUIRE(vector_1[1] == 6.0f);
+        REQUIRE(vector_1[2] == 6.0f);
+        REQUIRE(vector_1[3] == 1.0f);
+        vector_1.multiply_scalar(2.0f);
+        REQUIRE(vector_1[0] == 12.0f);
+        REQUIRE(vector_1[1] == 12.0f);
+        REQUIRE(vector_1[2] == 12.0f);
+        REQUIRE(vector_1[3] == 1.0f);
+    }
 }
 
