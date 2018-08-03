@@ -23,7 +23,7 @@ class Vytrix{
         }
     }
     type* operator [] (uint32_t i) {return matrix[i];}
-    Vytrix operator * (Vytrix rh_matrix){
+    Vytrix operator * (Vytrix& rh_matrix){
         Vytrix product_vytrix;
         for(int i = 0; i < 4; ++i){
             for(int j = 0; j < 4; ++j){
@@ -35,7 +35,7 @@ class Vytrix{
         }
         return product_vytrix;
     }
-    Vytrix operator * (const Vytrix rh_matrix) const {
+    Vytrix operator * (const Vytrix& rh_matrix) const {
         Vytrix product_vytrix;
         for(int i = 0; i < 4; ++i){
             for(int j = 0; j < 4; ++j){
@@ -47,7 +47,7 @@ class Vytrix{
         }
         return product_vytrix;
     }
-    static type deg_to_rad(type deg){
+    static type deg_to_rad(const type& deg){
         return (deg*M_PI)/180.0f;
     }
     void print(){
@@ -71,7 +71,7 @@ class Vypoint{
         vec[2] = input[2];
         vec[3] = input[3];
     }
-    Vypoint(const type x){vec[0] = x; vec[1] = x; vec[2] = x; vec[3] = x;}
+    Vypoint(const type& x){vec[0] = x; vec[1] = x; vec[2] = x; vec[3] = x;}
     type operator [] (const uint32_t i) {return vec[i];}
     const type operator [] (const uint32_t i) const {return vec[i];}
     Vypoint<type> operator * (Vytrix<type>& rh_matrix){
