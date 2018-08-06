@@ -1,11 +1,11 @@
 #pragma once
 #include <cmath>
 #include <iostream>
-
+//TODO: Unroll loop
 template <typename type>
 class Vytrix{
-    type matrix[4][4] = {};
     public:
+    type matrix[4][4] = {};
     Vytrix(){
 
     }
@@ -45,6 +45,24 @@ class Vytrix{
             }
         }
         return product_vytrix;
+    }
+    void transpose(){
+        type placeholder[4][4] = {{matrix[0][0], matrix[1][0], matrix[2][0], matrix[3][0]},
+                                  {matrix[0][1], matrix[1][1], matrix[2][1], matrix[3][1]},
+                                  {matrix[0][2], matrix[1][2], matrix[2][2], matrix[3][2]},
+                                  {matrix[0][3], matrix[1][3], matrix[2][3], matrix[3][3]}};
+        /*
+        for(size_t i = 0; i < 4; ++i){
+            for(size_t j = 0; j < 4; ++j){
+                placeholder[j][i] = matrix[i][j];
+            }
+        }
+        */
+        memcpy(*matrix, *placeholder, sizeof(type)*16);
+    }
+    //TODO
+    static void gaussian_eliminate_matrix(type& input_matrix[4][4]){
+
     }
     static type deg_to_rad(const type& deg){
         return (deg*M_PI)/180.0f;
@@ -112,10 +130,15 @@ class Vypoint{
         Assumes v[3] = w to be 1 to save multiplication operation
     */
     void multiplyBy4x4(Vytrix<type>& lh_matrix){
-        vec[0] = vec[0]*lh_matrix[0][0] + vec[0]*lh_matrix[1][0] + vec[0]*lh_matrix[2][0] + lh_matrix[3][0];
-        vec[1] = vec[1]*lh_matrix[0][1] + vec[1]*lh_matrix[1][1] + vec[1]*lh_matrix[2][1] + lh_matrix[3][1];
-        vec[2] = vec[2]*lh_matrix[0][2] + vec[2]*lh_matrix[1][2] + vec[2]*lh_matrix[2][2] + lh_matrix[3][2];
-        vec[3] = vec[3]*lh_matrix[0][3] + vec[3]*lh_matrix[1][3] + vec[3]*lh_matrix[2][3] + lh_matrix[3][3];
+        type vec_prime[4] = {};
+        vec_prime[0] = vec[0]*lh_matrix[0][0] + vec[1]*lh_matrix[1][0] + vec[2]*lh_matrix[2][0] + lh_matrix[3][0];
+        vec_prime[1] = vec[0]*lh_matrix[0][1] + vec[1]*lh_matrix[1][1] + vec[2]*lh_matrix[2][1] + lh_matrix[3][1];
+        vec_prime[2] = vec[0]*lh_matrix[0][2] + vec[1]*lh_matrix[1][2] + vec[2]*lh_matrix[2][2] + lh_matrix[3][2];
+        vec_prime[3] = vec[0]*lh_matrix[0][3] + vec[1]*lh_matrix[1][3] + vec[2]*lh_matrix[2][3] + lh_matrix[3][3];
+        if(vec[3] != 1 && vec[3] != 0){
+            vec_prime[0]/=vec_prime[3]; vec_prime[1]/=vec_prime[3]; vec_prime[2]/=vec_prime[3];
+        }
+        memcpy(vec, vec_prime, sizeof(type)*4);
     }
     type dot_product(Vypoint<type>& v){
         return vec[0]*v[0] + vec[1]*v[1] + vec[2]*v[2];
