@@ -4,9 +4,11 @@
 
 template <typename type>
 class Vytrix{
-    type matrix[4][4] {};
+    type matrix[4][4] = {};
     public:
-    Vytrix(){}
+    Vytrix(){
+
+    }
     Vytrix(const type (&input)[4][4]){
         for(size_t i = 0; i < 4; ++i){
             for(size_t j = 0; j < 4; ++j){
@@ -16,10 +18,7 @@ class Vytrix{
     }
     Vytrix(const uint32_t flag){
         if(flag == 1){
-            matrix[0][0] = 1.0f; matrix[0][1] = 0.0f; matrix[0][2] = 0.0f; matrix[0][3] = 0.0f;
-            matrix[1][0] = 0.0f; matrix[1][1] = 1.0f; matrix[1][2] = 0.0f; matrix[1][3] = 0.0f;
-            matrix[2][0] = 0.0f; matrix[2][1] = 0.0f; matrix[2][2] = 1.0f; matrix[2][3] = 0.0f;
-            matrix[3][0] = 0.0f; matrix[3][1] = 0.0f; matrix[3][2] = 0.0f; matrix[3][3] = 1.0f;
+            matrix[0][0] = 1.0f; matrix[1][1] = 1.0f; matrix[2][2] = 1.0f; matrix[3][3] = 1.0f;
         }
     }
     type* operator [] (uint32_t i) {return matrix[i];}
@@ -50,6 +49,32 @@ class Vytrix{
     static type deg_to_rad(const type& deg){
         return (deg*M_PI)/180.0f;
     }
+	static Vytrix<type> retrieve_translation_matrix(const type& x, const type& y, const type& z) {
+		Vytrix<type> translation_matrix(1);
+		translation_matrix[0][3] = x;
+		translation_matrix[1][3] = y;
+		translation_matrix[2][3] = z;
+		return translation_matrix;
+	}
+	static Vytrix<type> retrieve_scaling_matrix(const type& x_scaler, const type& y_scaler, const type& z_scaler) {
+		Vytrix<type> scaling_matrix(1);
+		scaling_matrix[0][0] = x_scaler;
+		scaling_matrix[1][1] = y_scaler;
+		scaling_matrix[2][2] = z_scaler;
+		return scaling_matrix;
+	}
+	static Vytrix<type> retrieve_x_rotation(const type& rad) {
+		Vytrix<type> rotation_matrix({{ 1.0f, 0.0f, 0.0f, 0.0f }, {0.0f, cos(rad), sin(rad), 0.0f}, {0.0f,-sin(rad), cos(rad), 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
+		return rotation_matrix;
+	}
+	static Vytrix<type> retrieve_y_rotation(const type& rad) {
+		Vytrix<type> rotation_matrix({{ cos(rad), 0.0f, -sin(rad), 0.0f}, { 0.0f, 1.0f, 0.0f, 0.0f}, { sin(rad), 0.0f, cos(rad), 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
+		return rotation_matrix;
+	}
+	static Vytrix<type> retrieve_z_rotation(const type& rad) {
+		Vytrix<type> rotation_matrix({{ cos(rad), sin(rad), 0.0f, 0.0f }, { -sin(rad), cos(rad), 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
+		return rotation_matrix;
+	}
     void print(){
         std::cout<<&matrix<<std::endl;
         std::cout<<"[ " << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3]<<"]"<<std::endl;
