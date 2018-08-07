@@ -65,14 +65,13 @@ class Vytrix{
         memcpy(*matrix, *placeholder, sizeof(type)*16);
     }
 
-#define SCALER_VECTOR_SUBTRACTION(matrix, target_row, i) type multiplication_factor = input_matrix[target_row][i];\
-                type subtraction_row[4] = {};\
-                memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);\
+    #define SCALER_VECTOR_SUBTRACTION(matrix, target_row, i)type multiplication_factor = input_matrix[target_row][i];\
+                type subtraction_row[4] = {}; memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);\
                 subtraction_row[0] *= multiplication_factor; subtraction_row[1] *= multiplication_factor;\
                 subtraction_row[2] *= multiplication_factor; subtraction_row[3] *= multiplication_factor;\
                 input_matrix[target_row][0] -= subtraction_row[0]; input_matrix[target_row][1] -= subtraction_row[1];\
                 input_matrix[target_row][2] -= subtraction_row[2]; input_matrix[target_row][3] -= subtraction_row[3];\
-    //TODO
+
     static void gaussian_eliminate_matrix(Vytrix<type> input_matrix){
         //Forward propagation
         for(int i = 0; i < 4; ++i){ //Column iteration
@@ -84,8 +83,7 @@ class Vytrix{
                         SWAP_ROWS(input_matrix, target_row, i);
                         --i; break;
                     }
-                }
-                continue;
+                } continue;
             }
             pivot = 1/pivot;
             for(int j = 0; j < 4; ++j){ //Unify pivot and row
@@ -109,7 +107,7 @@ class Vytrix{
         }
         input_matrix.print();
     }
-    static type deg_to_rad(const type& deg){
+    inline static type deg_to_rad(const type& deg){
         return (deg*M_PI)/180.0f;
     }
 	static Vytrix<type> retrieve_translation_matrix(const type& x, const type& y, const type& z) {
@@ -185,7 +183,7 @@ class Vypoint{
         }
         memcpy(vec, vec_prime, sizeof(type)*4);
     }
-    type dot_product(Vypoint<type>& v){
+    inline type dot_product(Vypoint<type>& v){
         return vec[0]*v[0] + vec[1]*v[1] + vec[2]*v[2];
     }
     Vypoint<type> x_product(Vypoint<type>& v){
