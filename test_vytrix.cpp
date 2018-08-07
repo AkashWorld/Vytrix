@@ -124,6 +124,11 @@ TEST_CASE("Matrix operations with Vytrix", "[Assignment]"){
         REQUIRE(original_matrix[2][3] == 15.0f);
         REQUIRE(original_matrix[3][3] == 16.0f);
     }
+    SECTION("Matrix gaussian elimination"){
+        Vytrix<float> original_matrix({{2.0f, 1.0f, -1.0f, 2.0f},{4.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 5.0f, -2.0f, 6.0f},{4.0f, 11.0f, -4.0f, 8.0f}});
+        std::cout<<"Gaussian elimination"<<std::endl;
+        Vytrix<float>::gaussian_eliminate_matrix(original_matrix);
+    }
 }
 
 TEST_CASE("Vector Initialization", "[Vector]"){

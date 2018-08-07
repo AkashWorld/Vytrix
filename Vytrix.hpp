@@ -61,8 +61,27 @@ class Vytrix{
         memcpy(*matrix, *placeholder, sizeof(type)*16);
     }
     //TODO
-    static void gaussian_eliminate_matrix(type& input_matrix[4][4]){
-
+    static void gaussian_eliminate_matrix(Vytrix<float> input_matrix){
+        for(size_t i = 0; i < 4; ++i){
+            type pivot = 1/input_matrix[i][i];
+            if(pivot == 0){
+                continue;
+            }
+            for(size_t j = 0; j < 4; ++j){ //Make sure pivot is 1 by dividing the row by the pivot
+                input_matrix[i][j] *= pivot;
+            }
+            size_t curr_row = i; curr_row++;
+            for(; curr_row< 4; ++curr_row){
+                type multiplication_factor = input_matrix[curr_row][i]; //Start reducing bottom rows to make all subsequent columns 0s
+                type subtraction_row[4] = {};
+                memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);
+                subtraction_row[0] *= multiplication_factor; subtraction_row[1] *= multiplication_factor;
+                subtraction_row[2] *= multiplication_factor; subtraction_row[3] *= multiplication_factor;
+                input_matrix[curr_row][0] -= subtraction_row[0]; input_matrix[curr_row][1] -= subtraction_row[1];
+                input_matrix[curr_row][2] -= subtraction_row[2]; input_matrix[curr_row][3] -= subtraction_row[3];
+            }
+        }
+        input_matrix.print();
     }
     static type deg_to_rad(const type& deg){
         return (deg*M_PI)/180.0f;
