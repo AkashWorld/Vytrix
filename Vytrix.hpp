@@ -65,34 +65,46 @@ class Vytrix{
         memcpy(*matrix, *placeholder, sizeof(type)*16);
     }
 
+#define SCALER_VECTOR_SUBTRACTION(matrix, target_row, i) type multiplication_factor = input_matrix[target_row][i];\
+                type subtraction_row[4] = {};\
+                memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);\
+                subtraction_row[0] *= multiplication_factor; subtraction_row[1] *= multiplication_factor;\
+                subtraction_row[2] *= multiplication_factor; subtraction_row[3] *= multiplication_factor;\
+                input_matrix[target_row][0] -= subtraction_row[0]; input_matrix[target_row][1] -= subtraction_row[1];\
+                input_matrix[target_row][2] -= subtraction_row[2]; input_matrix[target_row][3] -= subtraction_row[3];\
     //TODO
     static void gaussian_eliminate_matrix(Vytrix<type> input_matrix){
         //Forward propagation
-        for(size_t i = 0; i < 4; ++i){
+        for(int i = 0; i < 4; ++i){ //Column iteration
             type pivot = input_matrix[i][i];
             if(pivot == 0){
-                size_t curr_row = i; curr_row++;
-                for(; curr_row < 4; ++curr_row){
-                    if(input_matrix[curr_row][i] != 0){
-                        SWAP_ROWS(input_matrix, curr_row, i);
+                int target_row = i; target_row++;
+                for(; target_row < 4; ++target_row){
+                    if(input_matrix[target_row][i] != 0){
+                        SWAP_ROWS(input_matrix, target_row, i);
                         --i; break;
                     }
                 }
                 continue;
             }
             pivot = 1/pivot;
-            for(size_t j = 0; j < 4; ++j){
+            for(int j = 0; j < 4; ++j){ //Unify pivot and row
                 input_matrix[i][j] *= pivot;
             }
-            size_t curr_row = i; curr_row++;
-            for(; curr_row< 4; ++curr_row){
-                type multiplication_factor = input_matrix[curr_row][i];
-                type subtraction_row[4] = {};
-                memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);
-                subtraction_row[0] *= multiplication_factor; subtraction_row[1] *= multiplication_factor;
-                subtraction_row[2] *= multiplication_factor; subtraction_row[3] *= multiplication_factor;
-                input_matrix[curr_row][0] -= subtraction_row[0]; input_matrix[curr_row][1] -= subtraction_row[1];
-                input_matrix[curr_row][2] -= subtraction_row[2]; input_matrix[curr_row][3] -= subtraction_row[3];
+            int target_row = i; ++target_row;
+            for(; target_row< 4; ++target_row){ //Rows below the rows of interest
+                if(input_matrix[target_row][i] == 0){continue;}
+                SCALER_VECTOR_SUBTRACTION(input_matrix, target_row, i);
+            }
+        }
+        //Backward propagation
+        for(int i = 3; i >= 0; i--){ //Column iteration
+            type pivot = input_matrix[i][i];
+            if(pivot == 0){continue;}
+            int target_row = i; --target_row;
+            for(; target_row >= 0; --target_row){ //Rows above the row of interest
+                if(input_matrix[target_row][i] == 0){continue;}
+                SCALER_VECTOR_SUBTRACTION(input_matrix, target_row, i);                              
             }
         }
         input_matrix.print();
