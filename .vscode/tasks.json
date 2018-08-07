@@ -1,26 +1,32 @@
 {
     "version": "2.0.0",
-    "tasks": [{
-        "label": "build",
-        "command": "ninja", // Could be any other shell command
-        "args": [],
-        "type": "shell",
-        "options": {
-            "cwd": "${workspaceFolder}/bin"
+    "tasks": [
+        {
+            "label": "build",
+            "command": "ninja",
+            "args": [],
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/bin"
+            },
+            "problemMatcher": []
         },
-    },{
-        "label": "cmake-ninja",
-        "command":"cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja ..",
-        "type":"shell",
-        "options": {
-            "cwd": "${workspaceFolder}/bin"
+        {
+            "label": "cmake-ninja",
+            "command": "cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja ..",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/bin"
+            },
+            "problemMatcher": []
         },
-    },{
-        "label": "clean",
-        "command":"rm -rf bin/*",
-        "type":"shell",
-        "options": {
-            "cwd": "${workspaceFolder}"
-        },
-    }]
+        {
+            "label": "clean",
+            "command": "rm -rf bin/*",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ]
 }
