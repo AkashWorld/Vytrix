@@ -1,6 +1,10 @@
 #pragma once
 #include <cmath>
 #include <iostream>
+#define SWAP_ROWS(matrix, r1, r2) type placeholder_row[4];\
+    memcpy(placeholder_row, matrix[r1], sizeof(type)*4);\
+    memcpy(matrix[r1], matrix[r2], sizeof(type)*4);\
+    memcpy(matrix[r2], placeholder_row, sizeof(type)*4);\
 //TODO: Unroll loop
 template <typename type>
 class Vytrix{
@@ -60,19 +64,29 @@ class Vytrix{
         */
         memcpy(*matrix, *placeholder, sizeof(type)*16);
     }
+
     //TODO
-    static void gaussian_eliminate_matrix(Vytrix<float> input_matrix){
+    static void gaussian_eliminate_matrix(Vytrix<type> input_matrix){
+        //Forward propagation
         for(size_t i = 0; i < 4; ++i){
-            type pivot = 1/input_matrix[i][i];
+            type pivot = input_matrix[i][i];
             if(pivot == 0){
+                size_t curr_row = i; curr_row++;
+                for(; curr_row < 4; ++curr_row){
+                    if(input_matrix[curr_row][i] != 0){
+                        SWAP_ROWS(input_matrix, curr_row, i);
+                        --i; break;
+                    }
+                }
                 continue;
             }
-            for(size_t j = 0; j < 4; ++j){ //Make sure pivot is 1 by dividing the row by the pivot
+            pivot = 1/pivot;
+            for(size_t j = 0; j < 4; ++j){
                 input_matrix[i][j] *= pivot;
             }
             size_t curr_row = i; curr_row++;
             for(; curr_row< 4; ++curr_row){
-                type multiplication_factor = input_matrix[curr_row][i]; //Start reducing bottom rows to make all subsequent columns 0s
+                type multiplication_factor = input_matrix[curr_row][i];
                 type subtraction_row[4] = {};
                 memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);
                 subtraction_row[0] *= multiplication_factor; subtraction_row[1] *= multiplication_factor;

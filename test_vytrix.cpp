@@ -129,6 +129,15 @@ TEST_CASE("Matrix operations with Vytrix", "[Assignment]"){
         std::cout<<"Gaussian elimination"<<std::endl;
         Vytrix<float>::gaussian_eliminate_matrix(original_matrix);
     }
+    SECTION("Matrix gaussian elimination with a row with 0 under the pivot"){
+        Vytrix<float> original_matrix({{5.0f, 1.0f, -1.0f, 2.0f},{0.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 0.0f, -2.0f, 6.0f},{4.0f, 11.0f, 0.0f, 8.0f}});
+        std::cout<<"Gaussian elimination with a row with 0 under the pivot"<<std::endl;
+        Vytrix<float>::gaussian_eliminate_matrix(original_matrix);
+
+        Vytrix<float> original_matrix_1({{0.0f, 1.0f, -1.0f, 2.0f},{0.0f, 5.0f, -3.0f, 6.0f},{0.0f, 0.0f, -2.0f, 6.0f},{0.0f, 11.0f, 0.0f, 8.0f}});
+        std::cout<<"Gaussian elimination with a row with all 0s in 1 column"<<std::endl;
+        Vytrix<float>::gaussian_eliminate_matrix(original_matrix_1);
+    }
 }
 
 TEST_CASE("Vector Initialization", "[Vector]"){
@@ -293,5 +302,9 @@ TEST_CASE("Rotation operations", "[Vytrix]"){
         REQUIRE(vytrix[3][2] == 0.0f);
         REQUIRE(vytrix[3][3] == 1.0f);
     }
+}
+
+TEST_CASE("Misc helper functions", "[Static]"){
+
 }
 
