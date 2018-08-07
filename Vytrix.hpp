@@ -93,17 +93,25 @@ class Vytrix{
         identity_matrix[target_row][0] -= subtraction_row[0]; identity_matrix[target_row][1] -= subtraction_row[1];
         identity_matrix[target_row][2] -= subtraction_row[2]; identity_matrix[target_row][3] -= subtraction_row[3];
     }
-    void gaussian_eliminate_matrix(){
-        type iden_matrix[4][4] = {};
+    inline static type CALCULATE_DETERMINENT(type (&input_matrix)[4][4], type (&identity_matrix)[4][4]){
+        return input_matrix[0][0]*identity_matrix[0][3] + input_matrix[0][1]*identity_matrix[1][0]
+        + input_matrix[0][2]*identity_matrix[2][0] + input_matrix[0][3]*identity_matrix[3][0];
+    }
+    bool gaussian_eliminate_matrix(){
+        type original_matrix[4][4] = {};type iden_matrix[4][4] = {}; type determinent;
+        memcpy(original_matrix[0], this->matrix[0], sizeof(type)*4);
+        memcpy(original_matrix[1], this->matrix[1], sizeof(type)*4);
+        memcpy(original_matrix[2], this->matrix[2], sizeof(type)*4);
+        memcpy(original_matrix[3], this->matrix[3], sizeof(type)*4);
         iden_matrix[0][0] = 1.0f; iden_matrix[1][1] = 1.0f; iden_matrix[2][2] = 1.0f; iden_matrix[3][3] = 1.0f;
         //Forward propagation
         for(int i = 0; i < 4; ++i){ //Column iteration
-            type pivot = this->matrix[i][i];
+            type pivot = original_matrix[i][i];
             if(pivot == 0){
                 int target_row = i; target_row++;
                 for(; target_row < 4; ++target_row){
-                    if(this->matrix[target_row][i] != 0){
-                        Vytrix<float>::SWAP_ROWS(this->matrix, target_row, i);
+                    if(original_matrix[target_row][i] != 0){
+                        Vytrix<float>::SWAP_ROWS(original_matrix, target_row, i);
                         Vytrix<float>::SWAP_ROWS(iden_matrix, target_row, i);
                         --i; break;
                     }
@@ -111,30 +119,33 @@ class Vytrix{
             }
             pivot = 1/pivot;
             for(int j = 0; j < 4; ++j){ //Unify pivot and row
-                this->matrix[i][j] *= pivot;
+                original_matrix[i][j] *= pivot;
             }
             int target_row = i; ++target_row;
             for(; target_row< 4; ++target_row){ //Rows below the rows of interest
-                if(this->matrix[target_row][i] == 0){continue;}
-                Vytrix<float>::SCALER_VECTOR_SUBTRACTION(this->matrix, iden_matrix, target_row, i);
+                if(original_matrix[target_row][i] == 0){continue;}
+                Vytrix<float>::SCALER_VECTOR_SUBTRACTION(original_matrix, iden_matrix, target_row, i);
             }
         }
         //Backward propagation
         for(int i = 3; i >= 0; i--){ //Column iteration
-            type pivot = this->matrix[i][i];
+            type pivot = original_matrix[i][i];
             if(pivot == 0){continue;}
             int target_row = i; --target_row;
             for(; target_row >= 0; --target_row){ //Rows above the row of interest
-                if(this->matrix[target_row][i] == 0){continue;}
-                SCALER_VECTOR_SUBTRACTION(this->matrix, iden_matrix, target_row, i);     
+                if(original_matrix[target_row][i] == 0){continue;}
+                SCALER_VECTOR_SUBTRACTION(original_matrix, iden_matrix, target_row, i);     
             }
         }
-        memcpy(this->matrix[0], iden_matrix[0], sizeof(type)*4);
-        memcpy(this->matrix[1], iden_matrix[1], sizeof(type)*4);
-        memcpy(this->matrix[2], iden_matrix[2], sizeof(type)*4);
-        memcpy(this->matrix[3], iden_matrix[3], sizeof(type)*4);
-        std::cout<<"Identity Matrix inversion"<<std::endl;
-        this->print();
+        determinent = Vytrix<float>::CALCULATE_DETERMINENT(original_matrix, iden_matrix);
+        if(determinent != 0){
+            memcpy(this->matrix[0], iden_matrix[0], sizeof(type)*4);
+            memcpy(this->matrix[1], iden_matrix[1], sizeof(type)*4);
+            memcpy(this->matrix[2], iden_matrix[2], sizeof(type)*4);
+            memcpy(this->matrix[3], iden_matrix[3], sizeof(type)*4);
+            return true;
+        }
+        return false;
     }
     inline static type deg_to_rad(const type& deg){
         return (deg*M_PI)/180.0f;
