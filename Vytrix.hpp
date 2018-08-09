@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <iostream>
+
 template <typename type>
 class Vytrix{
     public:
@@ -179,6 +180,7 @@ class Vytrix{
                                 this->matrix[3][3]*rh_matrix[3][3];  
         return product_vytrix;
     }    
+    void SIMD_matrix_multiplication(const Vytrix (&lh_matrix), const Vytrix (&rh_matrix));
     void transpose(){
         type placeholder[4][4] = {{matrix[0][0], matrix[1][0], matrix[2][0], matrix[3][0]},
                                   {matrix[0][1], matrix[1][1], matrix[2][1], matrix[3][1]},
@@ -230,7 +232,8 @@ class Vytrix{
         std::cout<<"| " << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << ", " << matrix[2][3]<<"|"<<std::endl;
         std::cout<<"[ " << matrix[3][0] << ", " << matrix[3][1] << ", " << matrix[3][2] << ", " << matrix[3][3]<<"]"<<std::endl;
     }
-    inline static void SWAP_ROWS(type (&matrix)[4][4],size_t r1,size_t r2){ 
+    inline 
+    static void SWAP_ROWS(type (&matrix)[4][4],size_t r1,size_t r2){ 
         /*
         type placeholder_row[4];
         memcpy(placeholder_row, matrix[r1], sizeof(type)*4);
@@ -271,11 +274,14 @@ class Vytrix{
                         Vytrix<float>::SWAP_ROWS(original_matrix, target_row, i);
                         Vytrix<float>::SWAP_ROWS(iden_matrix, target_row, i);
                         --i; break;
+                    }else if(target_row == 3){
+                        return false;
                     }
-                } continue;
+                }
+                continue;
             }
             pivot = 1/pivot;
-            for(int j = 0; j < 4; ++j){ //Unify pivot and row
+            for(int j = i; j < 4; ++j){ //Unify pivot and row
                 original_matrix[i][j] *= pivot;
                 iden_matrix[i][j] *= pivot;
             }
@@ -299,93 +305,6 @@ class Vytrix{
         memcpy(this->matrix[1], iden_matrix[1], sizeof(type)*4);
         memcpy(this->matrix[2], iden_matrix[2], sizeof(type)*4);
         memcpy(this->matrix[3], iden_matrix[3], sizeof(type)*4);
-        return true;
-    }
-    bool gaussian_inversion_alternate(){
-        int i, j, k;
-        type inv[4][4];
-        type t[4][4];
-        memcpy(t[0], this->matrix[0], sizeof(type)*4);
-        memcpy(t[1], this->matrix[1], sizeof(type)*4);
-        memcpy(t[2], this->matrix[2], sizeof(type)*4);
-        memcpy(t[3], this->matrix[3], sizeof(type)*4);
-        // Forward elimination
-        for (i = 0; i < 3; i++) {
-            int pivot = i;
-
-            type pivotsize = t[i][i];
-
-            if (pivotsize < 0)
-                pivotsize = -pivotsize;
-
-            for (j = i + 1; j < 4; j++) {
-                type tmp = t[j][i];
-
-                if (tmp < 0)
-                    tmp = -tmp;
-
-                if (tmp > pivotsize) {
-                    pivot = j;
-                    pivotsize = tmp;
-                }
-            }
-
-            if (pivotsize == 0) {
-                // Cannot invert singular matrix
-                return false;
-            }
-
-            if (pivot != i) {
-                for (j = 0; j < 4; j++) {
-                    type tmp;
-
-                    tmp = t[i][j];
-                    t[i][j] = t[pivot][j];
-                    t[pivot][j] = tmp;
-
-                    tmp = inv[i][j];
-                    inv[i][j] = inv[pivot][j];
-                    inv[pivot][j] = tmp;
-                }
-            }
-
-            for (j = i + 1; j < 4; j++) {
-                type f = t[j][i] / t[i][i];
-
-                for (k = 0; k < 4; k++) {
-                    t[j][k] -= f * t[i][k];
-                    inv[j][k] -= f * inv[i][k];
-                }
-            }
-        }
-
-        // Backward substitution
-        for (i = 3; i >= 0; --i) {
-            type f;
-
-            if ((f = t[i][i]) == 0) {
-                // Cannot invert singular matrix
-                return false;
-            }
-
-            for (j = 0; j < 4; j++) {
-                t[i][j] /= f;
-                inv[i][j] /= f;
-            }
-
-            for (j = 0; j < i; j++) {
-                f = t[j][i];
-
-                for (k = 0; k < 4; k++) {
-                    t[j][k] -= f * t[i][k];
-                    inv[j][k] -= f * inv[i][k];
-                }
-            }
-        }
-        memcpy(this->matrix[0], inv[0], sizeof(type)*4);
-        memcpy(this->matrix[1], inv[1], sizeof(type)*4);
-        memcpy(this->matrix[2], inv[2], sizeof(type)*4);
-        memcpy(this->matrix[3], inv[3], sizeof(type)*4);
         return true;
     }
     bool LU_decomposition_inversion(){ //MESA implementation of unrolled LU Decomposition Inversion
@@ -526,24 +445,24 @@ class Vypoint{
     Vypoint(const type& x){vec[0] = x; vec[1] = x; vec[2] = x; vec[3] = x;}
     type operator [] (const uint32_t i) {return vec[i];}
     const type operator [] (const uint32_t i) const {return vec[i];}
-    Vypoint<type> operator * (Vytrix<type>& rh_matrix){
-        Vypoint<type> v_point;
-        for(int i = 0; i < 4; ++i){
-            for(int j = 0; j < 4; ++j){
-                v_point.vec[i] += vec[j]*rh_matrix[j][i];
-            }
-        }
-        return v_point;
+    Vypoint<type> operator * (Vytrix<type> &rh_matrix){
+        type vec_prime[4] = {};
+        vec_prime[0] = vec[0]*rh_matrix[0][0] + vec[1]*rh_matrix[1][0] + vec[2]*rh_matrix[2][0] + vec[3]*rh_matrix[3][0];
+        vec_prime[1] = vec[0]*rh_matrix[0][1] + vec[1]*rh_matrix[1][1] + vec[2]*rh_matrix[2][1] + vec[3]*rh_matrix[3][1];
+        vec_prime[2] = vec[0]*rh_matrix[0][2] + vec[1]*rh_matrix[1][2] + vec[2]*rh_matrix[2][2] + vec[3]*rh_matrix[3][2];
+        vec_prime[3] = vec[0]*rh_matrix[0][3] + vec[1]*rh_matrix[1][3] + vec[2]*rh_matrix[2][3] + vec[3]*rh_matrix[3][3];
+        Vypoint vy_point(vec_prime);
+        return vy_point;
     }
     /*
         Assumes v[3] = w to be 1 to save multiplication operation
     */
-    void multiplyBy4x4(Vytrix<type>& lh_matrix){
+    void multiplyBy4x4(Vytrix<type>& rh_matrix){
         type vec_prime[4] = {};
-        vec_prime[0] = vec[0]*lh_matrix[0][0] + vec[1]*lh_matrix[1][0] + vec[2]*lh_matrix[2][0] + lh_matrix[3][0];
-        vec_prime[1] = vec[0]*lh_matrix[0][1] + vec[1]*lh_matrix[1][1] + vec[2]*lh_matrix[2][1] + lh_matrix[3][1];
-        vec_prime[2] = vec[0]*lh_matrix[0][2] + vec[1]*lh_matrix[1][2] + vec[2]*lh_matrix[2][2] + lh_matrix[3][2];
-        vec_prime[3] = vec[0]*lh_matrix[0][3] + vec[1]*lh_matrix[1][3] + vec[2]*lh_matrix[2][3] + lh_matrix[3][3];
+        vec_prime[0] = vec[0]*rh_matrix[0][0] + vec[1]*rh_matrix[1][0] + vec[2]*rh_matrix[2][0] + rh_matrix[3][0];
+        vec_prime[1] = vec[0]*rh_matrix[0][1] + vec[1]*rh_matrix[1][1] + vec[2]*rh_matrix[2][1] + rh_matrix[3][1];
+        vec_prime[2] = vec[0]*rh_matrix[0][2] + vec[1]*rh_matrix[1][2] + vec[2]*rh_matrix[2][2] + rh_matrix[3][2];
+        vec_prime[3] = vec[0]*rh_matrix[0][3] + vec[1]*rh_matrix[1][3] + vec[2]*rh_matrix[2][3] + rh_matrix[3][3];
         if(vec[3] != 1 && vec[3] != 0){
             vec_prime[0]/=vec_prime[3]; vec_prime[1]/=vec_prime[3]; vec_prime[2]/=vec_prime[3];
         }
