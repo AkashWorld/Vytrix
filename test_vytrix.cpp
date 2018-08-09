@@ -1,5 +1,5 @@
 #define CATCH_CONFIG_MAIN
-#include <Catch2/catch.hpp>
+#include <catch.hpp>
 #include <Vytrix.hpp>
 #include <chrono>
 #define TIME_TESTS
@@ -88,28 +88,6 @@ TEST_CASE("Matrix operations with Vytrix", "[Assignment]"){
         Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
         Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
         Vytrix<float> product = lh_matrix*rh_matrix;
-        REQUIRE(product[0][0] == 80.0f);
-        REQUIRE(product[0][1] == 70.0f);
-        REQUIRE(product[0][2] == 60.0f);
-        REQUIRE(product[0][3] == 50.0f);
-        REQUIRE(product[1][0] == 240.0f);
-        REQUIRE(product[1][1] == 214.0f);
-        REQUIRE(product[1][2] == 188.0f);
-        REQUIRE(product[1][3] == 162.0f);    
-        REQUIRE(product[2][0] == 400.0f);
-        REQUIRE(product[2][1] == 358.0f);
-        REQUIRE(product[2][2] == 316.0f);
-        REQUIRE(product[2][3] == 274.0f);    
-        REQUIRE(product[3][0] == 560.0f);
-        REQUIRE(product[3][1] == 502.0f);
-        REQUIRE(product[3][2] == 444.0f);
-        REQUIRE(product[3][3] == 386.0f);
-    }
-    SECTION("Matrix Multiplication with pass by reference unrolled"){
-        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
-        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
-        Vytrix<float> product;
-        Vytrix<float>::multiply4x4(product, lh_matrix, rh_matrix);
         REQUIRE(product[0][0] == 80.0f);
         REQUIRE(product[0][1] == 70.0f);
         REQUIRE(product[0][2] == 60.0f);
@@ -360,35 +338,9 @@ TEST_CASE("Profiling Timings of Matrix Multiplication", "[Multiplication]"){
         std::cout<<"Rolled multiplication with copy constructor ";
         high_resolution_clock::time_point before_t = high_resolution_clock::now();
         for(size_t i = 0; i < 1000000; ++i){
-        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
-        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
-        Vytrix<float> product = lh_matrix*rh_matrix;
-        }
-        high_resolution_clock::time_point after_t = high_resolution_clock::now();
-        auto duration = duration_cast<microseconds>(after_t - before_t).count();
-        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
-    }
-    SECTION("Multiplication without copy constructor, rolled"){
-        std::cout<<"Rolled multiplication without copy constructor ";
-        high_resolution_clock::time_point before_t = high_resolution_clock::now();
-        for(size_t i = 0; i < 1000000; ++i){
-        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
-        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
-        Vytrix<float> product;
-        Vytrix<float>::multiply4x4_rolled(product, lh_matrix, rh_matrix);
-        }
-        high_resolution_clock::time_point after_t = high_resolution_clock::now();
-        auto duration = duration_cast<microseconds>(after_t - before_t).count();
-        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
-    }
-    SECTION("Multiplication with reference values, unrolled"){
-        std::cout<<"Unrolled multiplication without copy constructor ";
-        high_resolution_clock::time_point before_t = high_resolution_clock::now();
-        for(size_t i = 0; i < 1000000; ++i){
-        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
-        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
-        Vytrix<float> product;
-        Vytrix<float>::multiply4x4(product, lh_matrix, rh_matrix);
+            Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
+            Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
+            Vytrix<float> product = lh_matrix*rh_matrix;
         }
         high_resolution_clock::time_point after_t = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(after_t - before_t).count();

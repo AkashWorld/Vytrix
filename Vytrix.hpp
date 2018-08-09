@@ -23,7 +23,6 @@ class Vytrix{
             std::cout<<"Vytrix: Invoked copy constructor."<<std::endl;
             this->print();
         #endif
-
     }
     Vytrix(const uint32_t flag){
         if(flag == 1){
@@ -31,8 +30,8 @@ class Vytrix{
         }
     }
     type* operator [] (uint32_t i) {return matrix[i];}
-    /*
-    Vytrix operator * (const Vytrix& rh_matrix) const { //rolled, compiler auto unrolls
+    const type* operator [] (uint32_t i) const {return matrix[i];}
+    /*Vytrix operator * (Vytrix& rh_matrix) { //rolled, compiler auto unrolls
         Vytrix product_vytrix;
         for(int i = 0; i < 4; ++i){
             for(int j = 0; j < 4; ++j){
@@ -44,7 +43,6 @@ class Vytrix{
         }
         return product_vytrix;
     }*/
-    const type* operator [] (uint32_t i) const {return matrix[i];}
     Vytrix operator * (Vytrix& rh_matrix){
         Vytrix product_vytrix;
         product_vytrix[0][0] = this->matrix[0][0]*rh_matrix[0][0] +
@@ -186,26 +184,66 @@ class Vytrix{
                                   {matrix[0][1], matrix[1][1], matrix[2][1], matrix[3][1]},
                                   {matrix[0][2], matrix[1][2], matrix[2][2], matrix[3][2]},
                                   {matrix[0][3], matrix[1][3], matrix[2][3], matrix[3][3]}};
-        /*
         for(size_t i = 0; i < 4; ++i){
             for(size_t j = 0; j < 4; ++j){
                 placeholder[j][i] = matrix[i][j];
             }
         }
-        */
         memcpy(*matrix, *placeholder, sizeof(type)*16);
     }
-
+    inline bool invert(){
+        return this->LU_decomposition_inversion();
+    }
+    inline static type deg_to_rad(const type& deg){
+        return (deg*M_PI)/180.0f;
+    }
+	static Vytrix<type> retrieve_translation_matrix(const type& x, const type& y, const type& z) {
+		Vytrix<type> translation_matrix(1);
+		translation_matrix[0][3] = x;
+		translation_matrix[1][3] = y;
+		translation_matrix[2][3] = z;
+		return translation_matrix;
+	}
+	static Vytrix<type> retrieve_scaling_matrix(const type& x_scaler, const type& y_scaler, const type& z_scaler) {
+		Vytrix<type> scaling_matrix(1);
+		scaling_matrix[0][0] = x_scaler;
+		scaling_matrix[1][1] = y_scaler;
+		scaling_matrix[2][2] = z_scaler;
+		return scaling_matrix;
+	}
+	static Vytrix<type> retrieve_x_rotation(const type& rad) {
+		Vytrix<type> rotation_matrix({{ 1.0f, 0.0f, 0.0f, 0.0f }, {0.0f, cos(rad), sin(rad), 0.0f}, {0.0f,-sin(rad), cos(rad), 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
+		return rotation_matrix;
+	}
+	static Vytrix<type> retrieve_y_rotation(const type& rad) {
+		Vytrix<type> rotation_matrix({{ cos(rad), 0.0f, -sin(rad), 0.0f}, { 0.0f, 1.0f, 0.0f, 0.0f}, { sin(rad), 0.0f, cos(rad), 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
+		return rotation_matrix;
+	}
+	static Vytrix<type> retrieve_z_rotation(const type& rad) {
+		Vytrix<type> rotation_matrix({{ cos(rad), sin(rad), 0.0f, 0.0f }, { -sin(rad), cos(rad), 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
+		return rotation_matrix;
+	}
+    void print(){
+        std::cout<<&matrix<<std::endl;
+        std::cout<<"[ " << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3]<<"]"<<std::endl;
+        std::cout<<"| " << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << ", " << matrix[1][3]<<"|"<<std::endl;
+        std::cout<<"| " << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << ", " << matrix[2][3]<<"|"<<std::endl;
+        std::cout<<"[ " << matrix[3][0] << ", " << matrix[3][1] << ", " << matrix[3][2] << ", " << matrix[3][3]<<"]"<<std::endl;
+    }
     inline static void SWAP_ROWS(type (&matrix)[4][4],size_t r1,size_t r2){ 
+        /*
         type placeholder_row[4];
         memcpy(placeholder_row, matrix[r1], sizeof(type)*4);
         memcpy(matrix[r1], matrix[r2], sizeof(type)*4);
-        memcpy(matrix[r2], placeholder_row, sizeof(type)*4);
+        memcpy(matrix[r2], placeholder_row, sizeof(type)*4);*/
+        std::swap(matrix[r1][0], matrix[r2][0]);
+        std::swap(matrix[r1][1], matrix[r2][1]);
+        std::swap(matrix[r1][2], matrix[r2][2]);
+        std::swap(matrix[r1][3], matrix[r2][3]);
     }
-
     static void SCALER_VECTOR_SUBTRACTION(type (&input_matrix)[4][4],type (&identity_matrix)[4][4], size_t target_row, size_t i){
         type multiplication_factor = input_matrix[target_row][i];
-        type subtraction_row[4] = {}; memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);
+        type subtraction_row[4]; memcpy(subtraction_row, input_matrix[i], sizeof(type)*4);
         subtraction_row[0] *= multiplication_factor; subtraction_row[1] *= multiplication_factor;
         subtraction_row[2] *= multiplication_factor; subtraction_row[3] *= multiplication_factor;
         input_matrix[target_row][0] -= subtraction_row[0]; input_matrix[target_row][1] -= subtraction_row[1];
@@ -215,10 +253,6 @@ class Vytrix{
         subtraction_row[2] *= multiplication_factor; subtraction_row[3] *= multiplication_factor;
         identity_matrix[target_row][0] -= subtraction_row[0]; identity_matrix[target_row][1] -= subtraction_row[1];
         identity_matrix[target_row][2] -= subtraction_row[2]; identity_matrix[target_row][3] -= subtraction_row[3];
-    }
-    inline static type CALCULATE_DETERMINENT(type (&input_matrix)[4][4], type (&identity_matrix)[4][4]){
-        return input_matrix[0][0]*identity_matrix[0][0] + input_matrix[0][1]*identity_matrix[1][0]
-        + input_matrix[0][2]*identity_matrix[2][0] + input_matrix[0][3]*identity_matrix[3][0];
     }
     bool gaussian_inversion(){
         type original_matrix[4][4] = {};type iden_matrix[4][4] = {}; type determinent;
@@ -267,8 +301,7 @@ class Vytrix{
         memcpy(this->matrix[3], iden_matrix[3], sizeof(type)*4);
         return true;
     }
-    bool gaussian_inversion_alternate()
-    {
+    bool gaussian_inversion_alternate(){
         int i, j, k;
         type inv[4][4];
         type t[4][4];
@@ -355,7 +388,6 @@ class Vytrix{
         memcpy(this->matrix[3], inv[3], sizeof(type)*4);
         return true;
     }
-
     bool LU_decomposition_inversion(){ //MESA implementation of unrolled LU Decomposition Inversion
         type m[16], inv[16], det;
         memcpy(&m[0], this->matrix[0], sizeof(type)*4);
@@ -477,45 +509,6 @@ class Vytrix{
 
         return true;
     }
-    inline bool invert(){
-        return this->LU_decomposition_inversion();
-    }
-    inline static type deg_to_rad(const type& deg){
-        return (deg*M_PI)/180.0f;
-    }
-	static Vytrix<type> retrieve_translation_matrix(const type& x, const type& y, const type& z) {
-		Vytrix<type> translation_matrix(1);
-		translation_matrix[0][3] = x;
-		translation_matrix[1][3] = y;
-		translation_matrix[2][3] = z;
-		return translation_matrix;
-	}
-	static Vytrix<type> retrieve_scaling_matrix(const type& x_scaler, const type& y_scaler, const type& z_scaler) {
-		Vytrix<type> scaling_matrix(1);
-		scaling_matrix[0][0] = x_scaler;
-		scaling_matrix[1][1] = y_scaler;
-		scaling_matrix[2][2] = z_scaler;
-		return scaling_matrix;
-	}
-	static Vytrix<type> retrieve_x_rotation(const type& rad) {
-		Vytrix<type> rotation_matrix({{ 1.0f, 0.0f, 0.0f, 0.0f }, {0.0f, cos(rad), sin(rad), 0.0f}, {0.0f,-sin(rad), cos(rad), 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
-		return rotation_matrix;
-	}
-	static Vytrix<type> retrieve_y_rotation(const type& rad) {
-		Vytrix<type> rotation_matrix({{ cos(rad), 0.0f, -sin(rad), 0.0f}, { 0.0f, 1.0f, 0.0f, 0.0f}, { sin(rad), 0.0f, cos(rad), 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
-		return rotation_matrix;
-	}
-	static Vytrix<type> retrieve_z_rotation(const type& rad) {
-		Vytrix<type> rotation_matrix({{ cos(rad), sin(rad), 0.0f, 0.0f }, { -sin(rad), cos(rad), 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}});
-		return rotation_matrix;
-	}
-    void print(){
-        std::cout<<&matrix<<std::endl;
-        std::cout<<"[ " << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3]<<"]"<<std::endl;
-        std::cout<<"| " << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << ", " << matrix[1][3]<<"|"<<std::endl;
-        std::cout<<"| " << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << ", " << matrix[2][3]<<"|"<<std::endl;
-        std::cout<<"[ " << matrix[3][0] << ", " << matrix[3][1] << ", " << matrix[3][2] << ", " << matrix[3][3]<<"]"<<std::endl;
-    }
 };
 
 
@@ -554,6 +547,27 @@ class Vypoint{
         if(vec[3] != 1 && vec[3] != 0){
             vec_prime[0]/=vec_prime[3]; vec_prime[1]/=vec_prime[3]; vec_prime[2]/=vec_prime[3];
         }
+        memcpy(vec, vec_prime, sizeof(type)*4);
+    }
+    void rotate_by_x(type rad){
+        type vec_prime[4];
+        vec_prime[0] = vec[0];
+        vec_prime[1] = vec[1] * cos(rad) + vec[2]*(-sin(rad));
+        vec_prime[2] = vec[1] * sin(rad) + vec[2]*cos(rad);
+        memcpy(vec, vec_prime, sizeof(type)*4);
+    }
+    void rotate_by_y(type rad){
+        type vec_prime[4];
+        vec_prime[0] = vec[0]*cos(rad) + vec[2]*sin(rad);
+        vec_prime[1] = vec[1];
+        vec_prime[2] = vec[0]*(-sin(rad)) + vec[2]*cos(rad);
+        memcpy(vec, vec_prime, sizeof(type)*4);
+    }
+    void rotate_by_z(type rad){
+        type vec_prime[4];
+        vec_prime[0] = vec[0]*cos(rad) + vec[1]*(-sin(rad));
+        vec_prime[1] = vec[0]*sin(rad) + vec[1]*cos(rad);
+        vec_prime[2] = vec[3];
         memcpy(vec, vec_prime, sizeof(type)*4);
     }
     inline type dot_product(Vypoint<type>& v){
