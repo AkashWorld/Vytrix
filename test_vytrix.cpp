@@ -1,7 +1,8 @@
 #define CATCH_CONFIG_MAIN
 #include <Catch2/catch.hpp>
 #include <Vytrix.hpp>
-
+#include <chrono>
+#define TIME_TESTS
 TEST_CASE("Vytrix matrix tests", "[Vytrix]"){
     SECTION("Empty Matrix"){
         Vytrix<float> vytrix;
@@ -83,10 +84,32 @@ TEST_CASE("Vytrix matrix tests", "[Vytrix]"){
 }
 
 TEST_CASE("Matrix operations with Vytrix", "[Assignment]"){
-    SECTION("Matrix Multiplication with Vytrix"){
+    SECTION("Matrix Multiplication with Vytrix return copy"){
         Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
         Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
         Vytrix<float> product = lh_matrix*rh_matrix;
+        REQUIRE(product[0][0] == 80.0f);
+        REQUIRE(product[0][1] == 70.0f);
+        REQUIRE(product[0][2] == 60.0f);
+        REQUIRE(product[0][3] == 50.0f);
+        REQUIRE(product[1][0] == 240.0f);
+        REQUIRE(product[1][1] == 214.0f);
+        REQUIRE(product[1][2] == 188.0f);
+        REQUIRE(product[1][3] == 162.0f);    
+        REQUIRE(product[2][0] == 400.0f);
+        REQUIRE(product[2][1] == 358.0f);
+        REQUIRE(product[2][2] == 316.0f);
+        REQUIRE(product[2][3] == 274.0f);    
+        REQUIRE(product[3][0] == 560.0f);
+        REQUIRE(product[3][1] == 502.0f);
+        REQUIRE(product[3][2] == 444.0f);
+        REQUIRE(product[3][3] == 386.0f);
+    }
+    SECTION("Matrix Multiplication with pass by reference unrolled"){
+        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
+        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
+        Vytrix<float> product;
+        Vytrix<float>::multiply4x4(product, lh_matrix, rh_matrix);
         REQUIRE(product[0][0] == 80.0f);
         REQUIRE(product[0][1] == 70.0f);
         REQUIRE(product[0][2] == 60.0f);
@@ -124,19 +147,45 @@ TEST_CASE("Matrix operations with Vytrix", "[Assignment]"){
         REQUIRE(original_matrix[2][3] == 15.0f);
         REQUIRE(original_matrix[3][3] == 16.0f);
     }
-    SECTION("Matrix gaussian elimination"){
+    SECTION("Matrix gaussian elimination inversion"){
         Vytrix<float> original_matrix({{2.0f, 1.0f, -1.0f, 2.0f},{4.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 5.0f, -2.0f, 6.0f},{4.0f, 11.0f, -4.0f, 8.0f}});
-        std::cout<<"Gaussian elimination"<<std::endl;
-        original_matrix.gaussian_eliminate_matrix();
+        original_matrix.gaussian_inversion();
+        REQUIRE(original_matrix[0][0] == Approx(13.0f/6.0f));
+        REQUIRE(original_matrix[0][1] == Approx(-7.0f/6.0f));
+        REQUIRE(original_matrix[0][2] == 0.0f);
+        REQUIRE(original_matrix[0][3] == Approx(1.0f/3.0f));
+        REQUIRE(original_matrix[1][0] == Approx(2.0f/3.0f));
+        REQUIRE(original_matrix[1][1] == Approx(-2.0f/3.0f));
+        REQUIRE(original_matrix[1][2] == 0.0f);
+        REQUIRE(original_matrix[1][3] == Approx(1.0f/3.0f));
+        REQUIRE(original_matrix[2][0] == Approx(13.0f));
+        REQUIRE(original_matrix[2][1] == Approx(-8.0f));
+        REQUIRE(original_matrix[2][2] == Approx(1.0f));
+        REQUIRE(original_matrix[2][3] == Approx(2.0f));
+        REQUIRE(original_matrix[3][0] == Approx(9.0f/2.0f));
+        REQUIRE(original_matrix[3][1] == Approx(-5.0f/2.0f));
+        REQUIRE(original_matrix[3][2] == Approx(1.0f/2.0f));
+        REQUIRE(original_matrix[3][3] == Approx(1.0f/2.0f));
     }
-    SECTION("Matrix gaussian elimination with a row with 0 under the pivot"){
-        Vytrix<float> original_matrix({{5.0f, 1.0f, -1.0f, 2.0f},{0.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 0.0f, -2.0f, 6.0f},{4.0f, 11.0f, 0.0f, 8.0f}});
-        std::cout<<"Gaussian elimination with a row with 0 under the pivot"<<std::endl;
-        original_matrix.gaussian_eliminate_matrix();
-
-        Vytrix<float> original_matrix_1({{0.0f, 1.0f, -1.0f, 2.0f},{0.0f, 5.0f, -3.0f, 6.0f},{0.0f, 0.0f, -2.0f, 6.0f},{0.0f, 11.0f, 0.0f, 8.0f}});
-        std::cout<<"Gaussian elimination with a row with all 0s in 1 column"<<std::endl;
-        original_matrix_1.gaussian_eliminate_matrix();
+    SECTION("Matrix LU Decomposition Inversion"){
+        Vytrix<float> original_matrix({{2.0f, 1.0f, -1.0f, 2.0f},{4.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 5.0f, -2.0f, 6.0f},{4.0f, 11.0f, -4.0f, 8.0f}});
+        original_matrix.LU_decomposition_inversion();        
+        REQUIRE(original_matrix[0][0] == Approx(13.0f/6.0f));
+        REQUIRE(original_matrix[0][1] == Approx(-7.0f/6.0f));
+        REQUIRE(original_matrix[0][2] == 0.0f);
+        REQUIRE(original_matrix[0][3] == Approx(1.0f/3.0f));
+        REQUIRE(original_matrix[1][0] == Approx(2.0f/3.0f));
+        REQUIRE(original_matrix[1][1] == Approx(-2.0f/3.0f));
+        REQUIRE(original_matrix[1][2] == 0.0f);
+        REQUIRE(original_matrix[1][3] == Approx(1.0f/3.0f));
+        REQUIRE(original_matrix[2][0] == Approx(13.0f));
+        REQUIRE(original_matrix[2][1] == Approx(-8.0f));
+        REQUIRE(original_matrix[2][2] == Approx(1.0f));
+        REQUIRE(original_matrix[2][3] == Approx(2.0f));
+        REQUIRE(original_matrix[3][0] == Approx(9.0f/2.0f));
+        REQUIRE(original_matrix[3][1] == Approx(-5.0f/2.0f));
+        REQUIRE(original_matrix[3][2] == Approx(1.0f/2.0f));
+        REQUIRE(original_matrix[3][3] == Approx(1.0f/2.0f));
     }
 }
 
@@ -304,7 +353,82 @@ TEST_CASE("Rotation operations", "[Vytrix]"){
     }
 }
 
-TEST_CASE("Misc helper functions", "[Static]"){
-
+#ifdef TIME_TESTS
+using namespace std::chrono;
+TEST_CASE("Profiling Timings of Matrix Multiplication", "[Multiplication]"){
+    SECTION("Multiplication with copy constructor using * overloading, rolled"){
+        std::cout<<"Rolled multiplication with copy constructor ";
+        high_resolution_clock::time_point before_t = high_resolution_clock::now();
+        for(size_t i = 0; i < 1000000; ++i){
+        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
+        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
+        Vytrix<float> product = lh_matrix*rh_matrix;
+        }
+        high_resolution_clock::time_point after_t = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(after_t - before_t).count();
+        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
+    }
+    SECTION("Multiplication without copy constructor, rolled"){
+        std::cout<<"Rolled multiplication without copy constructor ";
+        high_resolution_clock::time_point before_t = high_resolution_clock::now();
+        for(size_t i = 0; i < 1000000; ++i){
+        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
+        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
+        Vytrix<float> product;
+        Vytrix<float>::multiply4x4_rolled(product, lh_matrix, rh_matrix);
+        }
+        high_resolution_clock::time_point after_t = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(after_t - before_t).count();
+        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
+    }
+    SECTION("Multiplication with reference values, unrolled"){
+        std::cout<<"Unrolled multiplication without copy constructor ";
+        high_resolution_clock::time_point before_t = high_resolution_clock::now();
+        for(size_t i = 0; i < 1000000; ++i){
+        Vytrix<float> lh_matrix({{1.0f,2.0f,3.0f,4.0f},{5.0f,6.0f,7.0f,8.0f},{9.0f,10.0f,11.0f,12.0f},{13.0f,14.0f,15.0f,16.0f}});
+        Vytrix<float> rh_matrix({{16.0f,15.0f,14.0f,13.0f},{12.0f,11.0f,10.0f,9.0f},{8.0f,7.0f,6.0f,5.0f},{4.0f,3.0f,2.0f,1.0f}});
+        Vytrix<float> product;
+        Vytrix<float>::multiply4x4(product, lh_matrix, rh_matrix);
+        }
+        high_resolution_clock::time_point after_t = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(after_t - before_t).count();
+        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
+    }
 }
+TEST_CASE("Profiling Timings of Matrix Inversions", "[Inversion]"){
+    SECTION("Gaussian inverison timing"){
+        std::cout<<"Timing Gaussian inversion...";
+        Vytrix<float> inversion_matrix({{2.0f, 1.0f, -1.0f, 2.0f},{4.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 5.0f, -2.0f, 6.0f},{4.0f, 11.0f, -4.0f, 8.0f}});
+        high_resolution_clock::time_point before_t = high_resolution_clock::now();
+        for(size_t i = 0; i < 1000000; ++i){
+            inversion_matrix.gaussian_inversion();
+        }
+        high_resolution_clock::time_point after_t = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(after_t - before_t).count();
+        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
+    }
+    SECTION("Alternate Gaussian inversion timing"){
+        std::cout<<"Timing Alternate Gaussian inversion...";
+        Vytrix<float> inversion_matrix({{2.0f, 1.0f, -1.0f, 2.0f},{4.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 5.0f, -2.0f, 6.0f},{4.0f, 11.0f, -4.0f, 8.0f}});
+        high_resolution_clock::time_point before_t = high_resolution_clock::now();
+        for(size_t i = 0; i < 1000000; ++i){
+            inversion_matrix.gaussian_inversion_alternate();
+        }
+        high_resolution_clock::time_point after_t = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(after_t - before_t).count();
+        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
+    }
+    SECTION("LU Decomposition inversion timing"){
+        std::cout<<"Timing LU Decomposition inversion...";
+        Vytrix<float> inversion_matrix({{2.0f, 1.0f, -1.0f, 2.0f},{4.0f, 5.0f, -3.0f, 6.0f},{-2.0f, 5.0f, -2.0f, 6.0f},{4.0f, 11.0f, -4.0f, 8.0f}});
+        high_resolution_clock::time_point before_t = high_resolution_clock::now();
+        for(size_t i = 0; i < 1000000; ++i){
+            inversion_matrix.LU_decomposition_inversion();
+        }
+        high_resolution_clock::time_point after_t = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(after_t - before_t).count();
+        std::cout<<"Time elapsed: "<<duration<<" microsecs"<<std::endl;
+    }
+}
+#endif
 
