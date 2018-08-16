@@ -1,6 +1,13 @@
 #pragma once
 #include <cmath>
 #include <iostream>
+#if defined(_MSC_VER)
+     /* Microsoft C/C++-compatible compiler */
+     #include <intrin.h>
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+     /* GCC-compatible compiler, targeting x86/x86-64 */
+     #include <x86intrin.h>
+#endif
 
 template <typename type>
 class Vytrix{
@@ -179,8 +186,23 @@ class Vytrix{
                                 this->matrix[3][2]*rh_matrix[2][3] +
                                 this->matrix[3][3]*rh_matrix[3][3];  
         return product_vytrix;
+    }
+    Vytrix SIMD_matrix_multiplication(const Vytrix (&lh_matrix), const Vytrix (&rh_matrix)){
+        __m128 resultant_sse[4][4] = {}; 
+        __m128 lh_row_0 = _mm128_set_ps(lh_matrix[0][0],lh_matrix[0][1],lh_matrix[0][2],lh_matrix[0][3]);
+        __m128 lh_row_1 = _mm128_set_ps(lh_matrix[1][0],lh_matrix[1][1],lh_matrix[1][2],lh_matrix[1][3]);
+        __m128 lh_row_2 = _mm128_set_ps(lh_matrix[2][0],lh_matrix[2][1],lh_matrix[2][2],lh_matrix[2][3]);
+        __m128 lh_row_3 = _mm128_set_ps(lh_matrix[3][0],lh_matrix[3][1],lh_matrix[3][2],lh_matrix[3][3]);
+
+        __m128 rh_col_0 = _mm128_set_ps(rh_matrix[0][0],rh_matrix[0][1],rh_matrix[0][2],rh_matrix[0][3]);
+        __m128 rh_col_1 = _mm128_set_ps(rh_matrix[1][0],rh_matrix[1][1],rh_matrix[1][2],rh_matrix[1][3]);
+        __m128 rh_col_2 = _mm128_set_ps(rh_matrix[2][0],rh_matrix[2][1],rh_matrix[2][2],rh_matrix[2][3]);
+        __m128 rh_col_3 = _mm128_set_ps(rh_matrix[3][0],rh_matrix[3][1],rh_matrix[3][2],rh_matrix[3][3]);
+
+        
+        Vytrix resulting_vytrix;
+        
     }    
-    void SIMD_matrix_multiplication(const Vytrix (&lh_matrix), const Vytrix (&rh_matrix));
     void transpose(){
         type placeholder[4][4] = {{matrix[0][0], matrix[1][0], matrix[2][0], matrix[3][0]},
                                   {matrix[0][1], matrix[1][1], matrix[2][1], matrix[3][1]},
@@ -274,14 +296,12 @@ class Vytrix{
                         Vytrix<float>::SWAP_ROWS(original_matrix, target_row, i);
                         Vytrix<float>::SWAP_ROWS(iden_matrix, target_row, i);
                         --i; break;
-                    }else if(target_row == 3){
-                        return false;
                     }
                 }
                 continue;
             }
             pivot = 1/pivot;
-            for(int j = i; j < 4; ++j){ //Unify pivot and row
+            for(int j = 0; j < 4; ++j){ //Unify pivot and row
                 original_matrix[i][j] *= pivot;
                 iden_matrix[i][j] *= pivot;
             }
@@ -290,6 +310,9 @@ class Vytrix{
                 if(original_matrix[target_row][i] == 0){continue;}
                 Vytrix<float>::SCALER_VECTOR_SUBTRACTION(original_matrix, iden_matrix, target_row, i);
             }
+        }
+        if(original_matrix[0][0]*original_matrix[1][1]*original_matrix[2][2]*original_matrix[3][3] == 0){ //if scaled_det == 0
+            return false;
         }
         //Backward substitution
         for(int i = 3; i >= 0; i--){ //Column iteration
