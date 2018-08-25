@@ -1,5 +1,8 @@
 #pragma once
 #include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 #include <iostream>
 #if defined(_MSC_VER)
      /* Microsoft C/C++-compatible compiler */
@@ -27,7 +30,7 @@ class Vytrix{
         memcpy(matrix[1], copy_vytrix.matrix[1], sizeof(type) * 4);
         memcpy(matrix[2], copy_vytrix.matrix[2], sizeof(type) * 4);
         memcpy(matrix[3], copy_vytrix.matrix[3], sizeof(type) * 4);
-        #ifndef NDEBUG
+        #if defined(DONT_PRINT)
             std::cout<<"Vytrix: Invoked copy constructor."<<std::endl;
             this->print();
         #endif
@@ -455,26 +458,26 @@ class Vytrix{
 
 
 template <typename type>
-class Vypoint{
+class Vypoint4{
     public:
     type vec[4] {};
-    Vypoint(){};
-    Vypoint(const type (&input)[4]){
+    Vypoint4(){};
+    Vypoint4(const type (&input)[4]){
         vec[0] = input[0];
         vec[1] = input[1];
         vec[2] = input[2];
         vec[3] = input[3];
     }
-    Vypoint(const type& x){vec[0] = x; vec[1] = x; vec[2] = x; vec[3] = x;}
+    Vypoint4(const type& x){vec[0] = x; vec[1] = x; vec[2] = x; vec[3] = x;}
     type operator [] (const uint32_t i) {return vec[i];}
     const type operator [] (const uint32_t i) const {return vec[i];}
-    Vypoint<type> operator * (Vytrix<type> &rh_matrix){
+    Vypoint4<type> operator * (Vytrix<type> &rh_matrix){
         type vec_prime[4] = {};
         vec_prime[0] = vec[0]*rh_matrix[0][0] + vec[1]*rh_matrix[1][0] + vec[2]*rh_matrix[2][0] + vec[3]*rh_matrix[3][0];
         vec_prime[1] = vec[0]*rh_matrix[0][1] + vec[1]*rh_matrix[1][1] + vec[2]*rh_matrix[2][1] + vec[3]*rh_matrix[3][1];
         vec_prime[2] = vec[0]*rh_matrix[0][2] + vec[1]*rh_matrix[1][2] + vec[2]*rh_matrix[2][2] + vec[3]*rh_matrix[3][2];
         vec_prime[3] = vec[0]*rh_matrix[0][3] + vec[1]*rh_matrix[1][3] + vec[2]*rh_matrix[2][3] + vec[3]*rh_matrix[3][3];
-        Vypoint vy_point(vec_prime);
+        Vypoint4 vy_point(vec_prime);
         return vy_point;
     }
     /*
@@ -512,20 +515,20 @@ class Vypoint{
         vec_prime[2] = vec[3];
         memcpy(vec, vec_prime, sizeof(type)*4);
     }
-    inline type dot_product(Vypoint<type>& v){
+    inline type dot_product(Vypoint4<type>& v){
         return vec[0]*v[0] + vec[1]*v[1] + vec[2]*v[2];
     }
-    Vypoint<type> x_product(Vypoint<type>& v){
-        Vypoint<type> resultant_vypoint({vec[1]*v[2] - vec[2]*v[1], 
+    Vypoint4<type> x_product(Vypoint4<type>& v){
+        Vypoint4<type> resultant_vypoint({vec[1]*v[2] - vec[2]*v[1], 
                                          vec[2]*v[0] - vec[0]*v[2],
                                          vec[0]*v[1] - vec[1]*v[0],
                                          1.0f});
         return resultant_vypoint; 
     }
-    void add_vector(const Vypoint<type>& v){
+    void add_vector(const Vypoint4<type>& v){
         vec[0] += v[0]; vec[1] += v[1]; vec[2] += v[2];
     }
-    void subtract_vector(const Vypoint<type>& v){
+    void subtract_vector(const Vypoint4<type>& v){
         vec[0] -= v[0]; vec[1] -= v[1]; vec[2] -= v[2];
     }
     void multiply_scalar(const type& r){
@@ -542,4 +545,34 @@ class Vypoint{
         std::cout<<vec<<std::endl;
         std::cout<<"[ "<<vec[0]<<", "<<vec[1]<<", "<<vec[2]<<", "<<vec[3]<<"]"<<std::endl;
     }
+};
+
+template <typename type>
+class Vypoint3 {
+public:
+	type vec[3]{};
+	Vypoint3() {};
+	Vypoint3(const type(&input)[3]) {
+		vec[0] = input[0];
+		vec[1] = input[1];
+		vec[2] = input[2];
+	}
+	Vypoint3(const type& x) { vec[0] = x; vec[1] = x; vec[2] = x; }
+	type operator [] (const uint32_t i) { return vec[i]; }
+	const type operator [] (const uint32_t i) const { return vec[i]; }
+};
+
+
+template <typename type>
+class Vypoint2 {
+public:
+	type vec[2]{};
+	Vypoint2() {};
+	Vypoint2(const type(&input)[2]) {
+		vec[0] = input[0];
+		vec[1] = input[1];
+	}
+	Vypoint2(const type& x) { vec[0] = x; vec[1] = x; }
+	type operator [] (const uint32_t i) { return vec[i]; }
+	const type operator [] (const uint32_t i) const { return vec[i]; }
 };
