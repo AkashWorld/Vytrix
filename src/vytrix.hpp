@@ -42,18 +42,6 @@ class Vytrix{
     }
     type* operator [] (uint32_t i) {return matrix[i];}
     const type* operator [] (uint32_t i) const {return matrix[i];}
-    /*Vytrix operator * (Vytrix& rh_matrix) { //rolled, compiler auto unrolls
-        Vytrix product_vytrix;
-        for(int i = 0; i < 4; ++i){
-            for(int j = 0; j < 4; ++j){
-                 product_vytrix[i][j] = matrix[i][0]*rh_matrix[0][j] +
-                                        matrix[i][1]*rh_matrix[1][j] +
-                                        matrix[i][2]*rh_matrix[2][j] +
-                                        matrix[i][3]*rh_matrix[3][j];
-            }
-        }
-        return product_vytrix;
-    }*/
     Vytrix operator * (Vytrix& rh_matrix){
         Vytrix product_vytrix;
         product_vytrix[0][0] = this->matrix[0][0]*rh_matrix[0][0] +
@@ -189,23 +177,7 @@ class Vytrix{
                                 this->matrix[3][2]*rh_matrix[2][3] +
                                 this->matrix[3][3]*rh_matrix[3][3];  
         return product_vytrix;
-    }
-    Vytrix SIMD_matrix_multiplication(const Vytrix (&lh_matrix), const Vytrix (&rh_matrix)){
-        __m128 resultant_sse[4][4] = {}; 
-        __m128 lh_row_0 = _mm128_set_ps(lh_matrix[0][0],lh_matrix[0][1],lh_matrix[0][2],lh_matrix[0][3]);
-        __m128 lh_row_1 = _mm128_set_ps(lh_matrix[1][0],lh_matrix[1][1],lh_matrix[1][2],lh_matrix[1][3]);
-        __m128 lh_row_2 = _mm128_set_ps(lh_matrix[2][0],lh_matrix[2][1],lh_matrix[2][2],lh_matrix[2][3]);
-        __m128 lh_row_3 = _mm128_set_ps(lh_matrix[3][0],lh_matrix[3][1],lh_matrix[3][2],lh_matrix[3][3]);
-
-        __m128 rh_col_0 = _mm128_set_ps(rh_matrix[0][0],rh_matrix[0][1],rh_matrix[0][2],rh_matrix[0][3]);
-        __m128 rh_col_1 = _mm128_set_ps(rh_matrix[1][0],rh_matrix[1][1],rh_matrix[1][2],rh_matrix[1][3]);
-        __m128 rh_col_2 = _mm128_set_ps(rh_matrix[2][0],rh_matrix[2][1],rh_matrix[2][2],rh_matrix[2][3]);
-        __m128 rh_col_3 = _mm128_set_ps(rh_matrix[3][0],rh_matrix[3][1],rh_matrix[3][2],rh_matrix[3][3]);
-
-        
-        Vytrix resulting_vytrix;
-        
-    }    
+    }  
     void transpose(){
         type placeholder[4][4] = {{matrix[0][0], matrix[1][0], matrix[2][0], matrix[3][0]},
                                   {matrix[0][1], matrix[1][1], matrix[2][1], matrix[3][1]},
